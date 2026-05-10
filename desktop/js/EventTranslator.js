@@ -61,7 +61,9 @@ var ET = {
                             $.fn.showAlert({ message: data.result, level: 'danger' });
                             return;
                         }
-                        window.location.reload();
+                        var params = new URLSearchParams(window.location.search);
+                        params.delete('id');
+                        window.location.href = window.location.pathname + '?' + params.toString();
                     },
                     error: function () {
                         $.fn.showAlert({ message: '{{Erreur lors de la suppression.}}', level: 'danger' });
@@ -198,12 +200,12 @@ var ET = {
         }
         $.ajax({
             type: 'POST',
-            url: 'core/ajax/eqLogic.ajax.php',
-            data: { action: 'get', id: ET.sourceEqLogicId },
+            url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
+            data: { action: 'sourceCmds', eqLogic_id: ET.sourceEqLogicId },
             dataType: 'json',
             success: function (data) {
                 if (data.state !== 'ok') { return; }
-                var cmds = (data.result.cmd || []).filter(function (c) { return c.type === 'info'; });
+                var cmds = data.result || [];
                 if (cmds.length === 0) {
                     $.fn.showAlert({ message: '{{Aucune commande info sur l\'équipement source.}}', level: 'warning' });
                     return;

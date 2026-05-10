@@ -19,6 +19,19 @@ try {
             ajax::success(utils::o2a($eqLogic));
             break;
 
+        case 'sourceCmds':
+            $eqLogicId = init('eqLogic_id');
+            $source = eqLogic::byId($eqLogicId);
+            if (!is_object($source)) {
+                throw new Exception(__('Équipement source introuvable.', __FILE__));
+            }
+            $result = [];
+            foreach ($source->getCmd('info') as $cmd) {
+                $result[] = ['id' => $cmd->getId(), 'name' => $cmd->getName()];
+            }
+            ajax::success($result);
+            break;
+
         case 'remove':
             $eqLogicId = init('eqLogic_id');
             if (empty($eqLogicId)) {
