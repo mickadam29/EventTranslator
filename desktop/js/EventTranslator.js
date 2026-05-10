@@ -20,6 +20,14 @@ var ET = {
             ET.loadEqLogic($(this).attr('data-eqLogic_id'));
         });
 
+        $(document).on('input.ET', '#in_searchEqLogic', function () {
+            var search = $(this).val().toLowerCase();
+            $('#div_eqLogicList .eqLogicDisplayCard').each(function () {
+                var name = $(this).find('.name').text().toLowerCase();
+                $(this).toggle(name.indexOf(search) !== -1);
+            });
+        });
+
         $(document).on('click.ET', '#bt_addEqLogic', function () {
             jeedom.eqLogic.getSelectModal({}, function (result) {
                 if (!result || !result.id) { return; }

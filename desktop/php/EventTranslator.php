@@ -17,7 +17,10 @@ $eqLogics = eqLogic::byType('EventTranslator');
             </a>
             <br><small class="text-muted">{{Mes équipements}}</small>
         </legend>
-        <div id="div_eqLogicList">
+        <div class="form-group" style="margin-bottom:5px;">
+            <input type="text" id="in_searchEqLogic" class="form-control input-sm" placeholder="{{Rechercher...}}" />
+        </div>
+        <div id="div_eqLogicList" style="max-height:calc(100vh - 220px);overflow-y:auto;">
             <?php foreach ($eqLogics as $eqLogic) { ?>
             <?php
             $srcType = $eqLogic->getConfiguration('source_eqType');
