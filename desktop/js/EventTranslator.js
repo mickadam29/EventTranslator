@@ -196,35 +196,60 @@ var ET = {
             $.fn.showAlert({ message: '{{Aucun équipement source défini.}}', level: 'warning' });
             return;
         }
-        jeedom.cmd.getSelectModal(
-            { cmd: { type: 'info' }, eqLogic: { id: ET.sourceEqLogicId } },
-            function (result) {
-                if (!result || !result.human) { return; }
-                var alreadyAdded = false;
-                $('#div_cmdList .et_cmd').each(function () {
-                    if ($(this).attr('data-source_cmd_id') == result.cmd.id) {
-                        alreadyAdded = true;
-                        return false;
-                    }
-                });
-                if (alreadyAdded) {
-                    $.fn.showAlert({ message: '{{Cette commande est déjà ajoutée.}}', level: 'warning' });
+        $.ajax({
+            type: 'POST',
+            url: 'core/ajax/eqLogic.ajax.php',
+            data: { action: 'get', id: ET.sourceEqLogicId },
+            dataType: 'json',
+            success: function (data) {
+                if (data.state !== 'ok') { return; }
+                var cmds = (data.result.cmd || []).filter(function (c) { return c.type === 'info'; });
+                if (cmds.length === 0) {
+                    $.fn.showAlert({ message: '{{Aucune commande info sur l\'équipement source.}}', level: 'warning' });
                     return;
                 }
-                var parts = result.human.match(/\[([^\]]*)\]/g);
-                var cmdName = parts ? parts[parts.length - 1].replace(/[\[\]]/g, '') : result.human;
-                var fakeCmd = {
-                    id: '',
-                    name: cmdName,
-                    configuration: {
-                        source_cmd_id: result.cmd.id,
-                        source_cmd_human: result.human,
-                        mappings: []
+                var options = cmds.map(function (c) {
+                    return '<option value="' + c.id + '">' + $('<div>').text(c.name).html() + '</option>';
+                }).join('');
+                bootbox.dialog({
+                    title: '{{Sélectionner une commande source}}',
+                    message: '<select class="form-control" id="sel_srcCmd">' + options + '</select>',
+                    buttons: {
+                        cancel: { label: '{{Annuler}}', className: 'btn-default' },
+                        ok: {
+                            label: '{{Valider}}',
+                            className: 'btn-success',
+                            callback: function () {
+                                var cmdId = $('#sel_srcCmd').val();
+                                var cmd = cmds.find(function (c) { return String(c.id) === String(cmdId); });
+                                if (!cmd) { return; }
+                                var already = false;
+                                $('#div_cmdList .et_cmd').each(function () {
+                                    if ($(this).attr('data-source_cmd_id') == cmdId) { already = true; return false; }
+                                });
+                                if (already) {
+                                    $.fn.showAlert({ message: '{{Cette commande est déjà ajoutée.}}', level: 'warning' });
+                                    return;
+                                }
+                                var sourceName = $('#in_sourceEqLogicName').val();
+                                ET._renderCmd({
+                                    id: '',
+                                    name: cmd.name,
+                                    configuration: {
+                                        source_cmd_id: cmdId,
+                                        source_cmd_human: '[' + sourceName + '][' + cmd.name + ']',
+                                        mappings: []
+                                    }
+                                });
+                            }
+                        }
                     }
-                };
-                ET._renderCmd(fakeCmd);
+                });
+            },
+            error: function () {
+                $.fn.showAlert({ message: '{{Erreur lors du chargement des commandes.}}', level: 'danger' });
             }
-        );
+        });
     },
 
     /* ---------- Ligne de mapping ---------- */
