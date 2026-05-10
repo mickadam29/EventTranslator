@@ -15,6 +15,7 @@ $eqLogics = eqLogic::byType('EventTranslator');
             <a class="btn btn-default btn-xs pull-right" id="bt_addEqLogic" title="{{Ajouter}}">
                 <i class="fas fa-plus-circle"></i> {{Ajouter}}
             </a>
+            <br><small class="text-muted">{{Mes équipements}}</small>
         </legend>
         <div id="div_eqLogicList">
             <?php foreach ($eqLogics as $eqLogic) { ?>
