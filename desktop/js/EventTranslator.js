@@ -61,10 +61,7 @@ var ET = {
                             $.fn.showAlert({ message: data.result, level: 'danger' });
                             return;
                         }
-                        $('.eqLogicDisplayCard[data-eqLogic_id="' + ET.currentEqLogicId + '"]').remove();
-                        $('#div_rightThumbnailList').hide();
-                        ET.currentEqLogicId = null;
-                        ET.sourceEqLogicId = null;
+                        window.location.reload();
                     },
                     error: function () {
                         $.fn.showAlert({ message: '{{Erreur lors de la suppression.}}', level: 'danger' });
