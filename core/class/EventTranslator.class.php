@@ -111,11 +111,12 @@ class EventTranslator extends eqLogic {
         $virtual->save();
 
         $eqLogic = new EventTranslator();
-        $eqLogic->setName($source->getName());
+        $eqLogic->setName($source->getName() . '_eventt');
         $eqLogic->setLogicalId('ET_' . $_sourceEqLogicId);
         $eqLogic->setEqType_name('EventTranslator');
         $eqLogic->setIsEnable(1);
         $eqLogic->setIsVisible(1);
+        $eqLogic->setObject_id($source->getObject_id());
         $eqLogic->setConfiguration('source_eqLogic_id', (string)$_sourceEqLogicId);
         $eqLogic->setConfiguration('source_eqLogic_human', $source->getHumanName());
         $eqLogic->setConfiguration('virtual_eqLogic_id', (string)$virtual->getId());
