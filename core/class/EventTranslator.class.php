@@ -103,6 +103,7 @@ class EventTranslator extends eqLogic {
 
         $virtual = new virtual();
         $virtual->setName($source->getName() . '_virt');
+        $virtual->setLogicalId('ET_virt_' . $_sourceEqLogicId);
         $virtual->setEqType_name('virtual');
         $virtual->setIsEnable(1);
         $virtual->setIsVisible(1);
@@ -111,6 +112,7 @@ class EventTranslator extends eqLogic {
 
         $eqLogic = new EventTranslator();
         $eqLogic->setName($source->getName());
+        $eqLogic->setLogicalId('ET_' . $_sourceEqLogicId);
         $eqLogic->setEqType_name('EventTranslator');
         $eqLogic->setIsEnable(1);
         $eqLogic->setIsVisible(1);
