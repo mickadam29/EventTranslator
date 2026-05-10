@@ -44,21 +44,21 @@ $eqLogics = eqLogic::byType('EventTranslator');
     <div class="col-xs-12 col-sm-9" id="div_rightThumbnailList" style="display:none;">
         <div id="div_eqLogicDetail">
 
-            <!-- Barre d'actions -->
-            <div class="pull-right" style="margin-bottom:10px;">
-                <a class="btn btn-sm btn-success" id="bt_saveEqLogic">
-                    <i class="fas fa-check-circle"></i> {{Sauvegarder}}
-                </a>
-                <a class="btn btn-sm btn-danger" id="bt_removeEqLogic">
-                    <i class="fas fa-minus-circle"></i> {{Supprimer}}
-                </a>
-            </div>
-            <div class="clearfix"></div>
-
             <!-- Champs cachés -->
             <input type="hidden" id="in_eqLogicId" value="" />
             <input type="hidden" id="in_sourceEqLogicId" value="" />
             <input type="hidden" id="in_virtualEqLogicId" value="" />
+
+            <!-- Barre d'actions + onglets sur la même ligne -->
+            <div class="input-group pull-right" style="display:inline-flex;margin-bottom:5px;">
+                <span class="input-group-btn">
+                    <a class="btn btn-sm btn-success roundedLeft" id="bt_saveEqLogic">
+                        <i class="fas fa-check-circle"></i> {{Sauvegarder}}
+                    </a><a class="btn btn-sm btn-danger roundedRight" id="bt_removeEqLogic">
+                        <i class="fas fa-minus-circle"></i> {{Supprimer}}
+                    </a>
+                </span>
+            </div>
 
             <!-- Onglets -->
             <ul class="nav nav-tabs" role="tablist">
