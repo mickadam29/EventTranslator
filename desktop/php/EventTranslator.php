@@ -203,3 +203,8 @@ $eqLogics = eqLogic::byType('EventTranslator');
         </td>
     </tr>
 </div>
+
+<?php
+include_file('desktop', 'EventTranslator', 'js', 'EventTranslator');
+include_file('core', 'plugin.template', 'js');
+?>
