@@ -19,7 +19,7 @@ var ET = {
             ET.loadEqLogic($(this).attr('data-eqLogic_id'));
         });
 
-        $('#bt_addEqLogic').on('click', function () {
+        $(document).on('click', '#bt_addEqLogic', function () {
             jeedom.eqLogic.getSelectModal({}, function (result) {
                 if (!result || !result.id) { return; }
                 $.ajax({
@@ -46,9 +46,9 @@ var ET = {
 
     /* ---------- Panneau détail ---------- */
     _bindDetail: function () {
-        $('#bt_saveEqLogic').on('click', function () { ET.saveAll(); });
+        $(document).on('click', '#bt_saveEqLogic', function () { ET.saveAll(); });
 
-        $('#bt_removeEqLogic').on('click', function () {
+        $(document).on('click', '#bt_removeEqLogic', function () {
             bootbox.confirm('{{Êtes-vous sûr de vouloir supprimer cet équipement ?}}', function (ok) {
                 if (!ok) { return; }
                 jeedom.eqLogic.remove({
@@ -67,7 +67,7 @@ var ET = {
             });
         });
 
-        $('#bt_addCmd').on('click', function () { ET._openCmdSelector(); });
+        $(document).on('click', '#bt_addCmd', function () { ET._openCmdSelector(); });
 
         $(document).on('click', '.bt_removeCmd', function () {
             var $panel = $(this).closest('.et_cmd');
