@@ -163,17 +163,20 @@ class EventTranslator extends eqLogic {
                     $cmd = null;
                 }
             }
+            $subtype = !empty($cmdData['subtype']) ? $cmdData['subtype'] : $sourceCmd->getSubType();
+
             if (!is_object($cmd)) {
                 $cmd = new EventTranslatorCmd();
                 $cmd->setEqLogic_id($this->getId());
                 $cmd->setType('info');
-                $cmd->setSubType($sourceCmd->getSubType());
                 $cmd->setConfiguration('source_cmd_id', (string)$sourceCmdId);
             }
+            $cmd->setSubType($subtype);
 
             $cmdName = !empty($cmdData['name']) ? $cmdData['name'] : $sourceCmd->getName();
             $cmd->setName($cmdName);
             $cmd->setConfiguration('source_cmd_human', $sourceCmd->getHumanName());
+            $cmd->setConfiguration('virtual_subtype', $subtype);
             $cmd->setConfiguration('mappings', $cmdData['mappings'] ?? []);
             $cmd->save();
 
@@ -186,8 +189,8 @@ class EventTranslator extends eqLogic {
                 $virtualCmd = new virtualCmd();
                 $virtualCmd->setEqLogic_id($virtualId);
                 $virtualCmd->setType('info');
-                $virtualCmd->setSubType($sourceCmd->getSubType());
             }
+            $virtualCmd->setSubType($subtype);
             $virtualCmd->setName($cmdName);
             $virtualCmd->save();
 

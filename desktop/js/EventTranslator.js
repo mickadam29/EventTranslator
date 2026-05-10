@@ -173,6 +173,8 @@ var ET = {
         $panel.attr('data-cmd_id', cmd.id || '');
         $panel.attr('data-source_cmd_id', srcCmdId);
         $tmpl.find('.et_cmd_name').val(cmd.name || '');
+        var subtype = (cmd.configuration && cmd.configuration.virtual_subtype) ? cmd.configuration.virtual_subtype : 'string';
+        $tmpl.find('.et_cmd_subtype').val(subtype);
 
         // Affichage nom source (stocké ou récupéré)
         var humanStored = cmd.configuration ? cmd.configuration.source_cmd_human : '';
@@ -302,6 +304,7 @@ var ET = {
                 id: $cmd.attr('data-cmd_id') || '',
                 name: $cmd.find('.et_cmd_name').val(),
                 source_cmd_id: $cmd.attr('data-source_cmd_id'),
+                subtype: $cmd.find('.et_cmd_subtype').val() || 'string',
                 mappings: []
             };
             $cmd.find('.et_mapping_row').each(function () {

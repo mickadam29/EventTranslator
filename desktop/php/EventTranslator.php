@@ -134,9 +134,17 @@ $eqLogics = eqLogic::byType('EventTranslator');
                     <strong>{{Source :}}</strong>
                     <span class="et_cmd_source_human text-muted">-</span>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-3">
                     <label>{{Nom virtuel}}</label>
                     <input type="text" class="et_cmd_name form-control input-sm" placeholder="{{Nom de la commande virtuelle}}" />
+                </div>
+                <div class="col-sm-2">
+                    <label>{{Type virtuel}}</label>
+                    <select class="et_cmd_subtype form-control input-sm">
+                        <option value="string">{{Texte}}</option>
+                        <option value="numeric">{{Numérique}}</option>
+                        <option value="binary">{{Binaire}}</option>
+                    </select>
                 </div>
                 <div class="col-sm-4 text-right">
                     <a class="btn btn-xs btn-danger bt_removeCmd"><i class="fas fa-times"></i> {{Supprimer}}</a>
