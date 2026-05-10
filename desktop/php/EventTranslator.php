@@ -162,7 +162,7 @@ $eqLogics = eqLogic::byType('EventTranslator');
 </div>
 
 <!-- Template ligne de mapping -->
-<div id="tmpl_mapping" style="display:none;">
+<table id="tmpl_mapping" style="display:none;"><tbody>
     <tr class="et_mapping_row">
         <td>
             <input type="text" class="form-control input-sm et_mapping_source" placeholder="{{Valeur source}}" />
@@ -202,7 +202,7 @@ $eqLogics = eqLogic::byType('EventTranslator');
             <a class="btn btn-xs btn-danger bt_removeMapping"><i class="fas fa-times"></i></a>
         </td>
     </tr>
-</div>
+</tbody></table>
 
 <?php
 include_file('desktop', 'EventTranslator', 'js', 'EventTranslator');
