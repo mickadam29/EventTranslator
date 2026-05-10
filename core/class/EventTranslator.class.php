@@ -223,11 +223,16 @@ class EventTranslator extends eqLogic {
     }
 
     private static function _loadVirtualClass() {
-        if (!class_exists('virtualEqLogic')) {
-            include_file('core', 'virtual', 'class', 'virtual');
+        if (class_exists('virtualEqLogic')) {
+            return;
         }
+        $path = dirname(__FILE__) . '/../../../plugins/virtual/core/class/virtual.class.php';
+        if (!file_exists($path)) {
+            throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
+        }
+        require_once $path;
         if (!class_exists('virtualEqLogic')) {
-            throw new Exception(__('Le plugin Virtuel doit être installé et activé.', __FILE__));
+            throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
         }
     }
 }
