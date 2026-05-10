@@ -313,6 +313,14 @@ var ET = {
                 var type = $row.find('.et_mapping_type').val();
                 var source = $row.find('.et_mapping_source').val();
                 if (source === '') { return; }
+                if (type === 'cmd' && !$row.find('.et_mapping_cmd_id').val()) {
+                    $row.remove();
+                    return;
+                }
+                if (type === 'scenario' && !$row.find('.et_mapping_scenario_id').val()) {
+                    $row.remove();
+                    return;
+                }
                 var mapping = { source: source, type: type };
                 if (type === 'value') {
                     mapping.value = $row.find('.et_mapping_value').val();
