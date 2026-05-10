@@ -34,9 +34,6 @@ $eqLogics = eqLogic::byType('EventTranslator');
 
             <!-- Barre d'actions -->
             <div class="pull-right" style="margin-bottom:10px;">
-                <a class="btn btn-sm btn-default" id="bt_configureEqLogic">
-                    <i class="fas fa-cogs"></i> {{Configuration avancée}}
-                </a>
                 <a class="btn btn-sm btn-success" id="bt_saveEqLogic">
                     <i class="fas fa-check-circle"></i> {{Sauvegarder}}
                 </a>
