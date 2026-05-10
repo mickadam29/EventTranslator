@@ -166,11 +166,12 @@ var ET = {
     /* ---------- Affichage d'un panneau commande ---------- */
     _renderCmd: function (cmd) {
         var $tmpl = $('#tmpl_cmd').clone().removeAttr('id').show();
+        var $panel = $tmpl.find('.et_cmd');
         var srcCmdId = cmd.configuration ? cmd.configuration.source_cmd_id : '';
         var mappings = (cmd.configuration && cmd.configuration.mappings) ? cmd.configuration.mappings : [];
 
-        $tmpl.attr('data-cmd_id', cmd.id || '');
-        $tmpl.attr('data-source_cmd_id', srcCmdId);
+        $panel.attr('data-cmd_id', cmd.id || '');
+        $panel.attr('data-source_cmd_id', srcCmdId);
         $tmpl.find('.et_cmd_name').val(cmd.name || '');
 
         // Affichage nom source (stocké ou récupéré)
