@@ -101,7 +101,7 @@ class EventTranslator extends eqLogic {
         }
         self::_loadVirtualClass();
 
-        $virtual = new virtualEqLogic();
+        $virtual = new virtual();
         $virtual->setName($source->getName() . '_virt');
         $virtual->setEqType_name('virtual');
         $virtual->setIsEnable(1);
@@ -141,7 +141,7 @@ class EventTranslator extends eqLogic {
         }
         $this->save();
 
-        $virtualEqLogicId = $this->getConfiguration('virtual_eqLogic_id');
+        $virtualId = $this->getConfiguration('virtual_eqLogic_id');
         $keptCmdIds = [];
 
         foreach ($_cmdsData as $cmdData) {
@@ -182,7 +182,7 @@ class EventTranslator extends eqLogic {
             }
             if (!is_object($virtualCmd)) {
                 $virtualCmd = new virtualCmd();
-                $virtualCmd->setEqLogic_id($virtualEqLogicId);
+                $virtualCmd->setEqLogic_id($virtualId);
                 $virtualCmd->setType('info');
                 $virtualCmd->setSubType($sourceCmd->getSubType());
             }
@@ -223,7 +223,7 @@ class EventTranslator extends eqLogic {
     }
 
     private static function _loadVirtualClass() {
-        if (class_exists('virtualEqLogic')) {
+        if (class_exists('virtual')) {
             return;
         }
         $pluginsDir = dirname(dirname(dirname(dirname(__FILE__))));
@@ -232,7 +232,7 @@ class EventTranslator extends eqLogic {
             throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
         }
         require_once $path;
-        if (!class_exists('virtualEqLogic')) {
+        if (!class_exists('virtual')) {
             throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
         }
     }
