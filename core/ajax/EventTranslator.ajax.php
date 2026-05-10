@@ -19,6 +19,26 @@ try {
             ajax::success(utils::o2a($eqLogic));
             break;
 
+        case 'remove':
+            $eqLogicId = init('eqLogic_id');
+            if (empty($eqLogicId)) {
+                throw new Exception(__('ID équipement manquant.', __FILE__));
+            }
+            $eqLogic = eqLogic::byId($eqLogicId);
+            if (!is_object($eqLogic) || $eqLogic->getEqType_name() !== 'EventTranslator') {
+                throw new Exception(__('Équipement EventTranslator introuvable.', __FILE__));
+            }
+            $virtualId = $eqLogic->getConfiguration('virtual_eqLogic_id');
+            if (!empty($virtualId)) {
+                $virtual = eqLogic::byId($virtualId);
+                if (is_object($virtual)) {
+                    $virtual->remove();
+                }
+            }
+            $eqLogic->remove();
+            ajax::success();
+            break;
+
         case 'saveAll':
             $eqLogicId = init('eqLogic_id');
             if (empty($eqLogicId)) {

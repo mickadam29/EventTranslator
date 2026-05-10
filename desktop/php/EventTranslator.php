@@ -11,7 +11,7 @@ $eqLogics = eqLogic::byType('EventTranslator');
     <!-- Panneau gauche : liste des équipements -->
     <div class="col-xs-12 col-sm-3" id="div_leftThumbnailList">
         <legend>
-            <i class="fas fa-exchange-alt"></i> {{Mes équipements}}
+            <i class="fas fa-exchange-alt"></i> {{EventTranslator}}
             <a class="btn btn-default btn-xs pull-right" id="bt_addEqLogic" title="{{Ajouter}}">
                 <i class="fas fa-plus-circle"></i> {{Ajouter}}
             </a>

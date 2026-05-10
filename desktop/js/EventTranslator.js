@@ -51,17 +51,23 @@ var ET = {
         $(document).on('click', '#bt_removeEqLogic', function () {
             bootbox.confirm('{{Êtes-vous sûr de vouloir supprimer cet équipement ?}}', function (ok) {
                 if (!ok) { return; }
-                jeedom.eqLogic.remove({
-                    id: ET.currentEqLogicId,
-                    type: 'EventTranslator',
-                    success: function () {
+                $.ajax({
+                    type: 'POST',
+                    url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
+                    data: { action: 'remove', eqLogic_id: ET.currentEqLogicId },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.state !== 'ok') {
+                            $.fn.showAlert({ message: data.result, level: 'danger' });
+                            return;
+                        }
                         $('.eqLogicDisplayCard[data-eqLogic_id="' + ET.currentEqLogicId + '"]').remove();
                         $('#div_rightThumbnailList').hide();
                         ET.currentEqLogicId = null;
                         ET.sourceEqLogicId = null;
                     },
-                    error: function (data) {
-                        $.fn.showAlert({ message: data.message, level: 'danger' });
+                    error: function () {
+                        $.fn.showAlert({ message: '{{Erreur lors de la suppression.}}', level: 'danger' });
                     }
                 });
             });
