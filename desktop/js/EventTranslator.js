@@ -365,8 +365,13 @@ var ET = {
 
     /* ---------- Ajouter une carte dans la liste ---------- */
     _appendCard: function (eq) {
+        var cfg = eq.configuration || {};
+        var srcType = cfg.source_eqType || '';
+        var iconHtml = srcType
+            ? '<img src="plugins/' + srcType + '/plugin_info/' + srcType + '.png" style="width:32px;height:32px;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';" /><i class="fas fa-exchange-alt fa-2x" style="display:none;"></i>'
+            : '<i class="fas fa-exchange-alt fa-2x"></i>';
         var html = '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' + eq.id + '">'
-            + '<i class="fas fa-exchange-alt fa-2x"></i><br>'
+            + iconHtml + '<br>'
             + '<span class="name">' + (eq.name || '') + '</span>'
             + '</div>';
         $('#div_eqLogicList').append(html);

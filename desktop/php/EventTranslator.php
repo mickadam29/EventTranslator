@@ -19,9 +19,20 @@ $eqLogics = eqLogic::byType('EventTranslator');
         </legend>
         <div id="div_eqLogicList">
             <?php foreach ($eqLogics as $eqLogic) { ?>
+            <?php
+            $srcType = $eqLogic->getConfiguration('source_eqType');
+            $iconUrl = $srcType ? 'plugins/' . $srcType . '/plugin_info/' . $srcType . '.png' : '';
+            ?>
             <div class="eqLogicDisplayCard cursor <?= ($eqLogic->getIsEnable() == 0) ? 'opacity05' : '' ?>"
                  data-eqLogic_id="<?= $eqLogic->getId() ?>">
-                <i class="fas fa-exchange-alt fa-2x"></i><br>
+                <?php if ($iconUrl): ?>
+                <img src="<?= $iconUrl ?>" style="width:32px;height:32px;"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                <i class="fas fa-exchange-alt fa-2x" style="display:none;"></i>
+                <?php else: ?>
+                <i class="fas fa-exchange-alt fa-2x"></i>
+                <?php endif; ?>
+                <br>
                 <span class="name"><?= $eqLogic->getName() ?></span><br>
                 <span class="hiddenAsCard"><?= ($eqLogic->getObject() != null) ? $eqLogic->getObject()->getName() : '' ?></span>
             </div>
