@@ -208,9 +208,11 @@ var ET = {
                     $.fn.showAlert({ message: '{{Cette commande est déjà ajoutée.}}', level: 'warning' });
                     return;
                 }
+                var parts = result.human.match(/\[([^\]]*)\]/g);
+                var cmdName = parts ? parts[parts.length - 1].replace(/[\[\]]/g, '') : result.human;
                 var fakeCmd = {
                     id: '',
-                    name: result.human.split(' > ').pop().replace(/[\[\]]/g, ''),
+                    name: cmdName,
                     configuration: {
                         source_cmd_id: result.cmd.id,
                         source_cmd_human: result.human,
