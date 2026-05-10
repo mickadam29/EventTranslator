@@ -9,17 +9,18 @@ var ET = {
     sourceEqLogicId: null,
 
     init: function () {
+        $(document).off('.ET');
         ET._bindList();
         ET._bindDetail();
     },
 
     /* ---------- Liste gauche ---------- */
     _bindList: function () {
-        $(document).on('click', '.eqLogicDisplayCard', function () {
+        $(document).on('click.ET', '.eqLogicDisplayCard', function () {
             ET.loadEqLogic($(this).attr('data-eqLogic_id'));
         });
 
-        $(document).on('click', '#bt_addEqLogic', function () {
+        $(document).on('click.ET', '#bt_addEqLogic', function () {
             jeedom.eqLogic.getSelectModal({}, function (result) {
                 if (!result || !result.id) { return; }
                 $.ajax({
@@ -46,9 +47,9 @@ var ET = {
 
     /* ---------- Panneau détail ---------- */
     _bindDetail: function () {
-        $(document).on('click', '#bt_saveEqLogic', function () { ET.saveAll(); });
+        $(document).on('click.ET', '#bt_saveEqLogic', function () { ET.saveAll(); });
 
-        $(document).on('click', '#bt_removeEqLogic', function () {
+        $(document).on('click.ET', '#bt_removeEqLogic', function () {
             bootbox.confirm('{{Êtes-vous sûr de vouloir supprimer cet équipement ?}}', function (ok) {
                 if (!ok) { return; }
                 $.ajax({
@@ -72,28 +73,28 @@ var ET = {
             });
         });
 
-        $(document).on('click', '#bt_addCmd', function () { ET._openCmdSelector(); });
+        $(document).on('click.ET', '#bt_addCmd', function () { ET._openCmdSelector(); });
 
-        $(document).on('click', '.bt_removeCmd', function () {
+        $(document).on('click.ET', '.bt_removeCmd', function () {
             var $panel = $(this).closest('.et_cmd');
             bootbox.confirm('{{Supprimer cette commande ?}}', function (ok) {
                 if (ok) { $panel.remove(); }
             });
         });
 
-        $(document).on('click', '.bt_addMapping', function () {
+        $(document).on('click.ET', '.bt_addMapping', function () {
             ET._addMappingRow($(this).closest('.panel-body').find('.et_mapping_body'), {});
         });
 
-        $(document).on('click', '.bt_removeMapping', function () {
+        $(document).on('click.ET', '.bt_removeMapping', function () {
             $(this).closest('.et_mapping_row').remove();
         });
 
-        $(document).on('change', '.et_mapping_type', function () {
+        $(document).on('change.ET', '.et_mapping_type', function () {
             ET._switchTargetType($(this));
         });
 
-        $(document).on('click', '.bt_selectActionCmd', function () {
+        $(document).on('click.ET', '.bt_selectActionCmd', function () {
             var $row = $(this).closest('.et_mapping_row');
             jeedom.cmd.getSelectModal({ cmd: { type: 'action' } }, function (result) {
                 if (result && result.human) {
@@ -103,7 +104,7 @@ var ET = {
             });
         });
 
-        $(document).on('click', '.bt_selectScenario', function () {
+        $(document).on('click.ET', '.bt_selectScenario', function () {
             var $row = $(this).closest('.et_mapping_row');
             jeedom.scenario.getSelectModal({}, function (result) {
                 if (result && result.human) {
