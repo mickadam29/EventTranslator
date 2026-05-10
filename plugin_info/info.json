@@ -1,0 +1,11 @@
+{
+    "id": "EventTranslator",
+    "name": "EventTranslator",
+    "description": "Traduit en temps réel les valeurs d'une commande info source : mise à jour d'une commande virtuelle, déclenchement d'action ou de scénario.",
+    "licence": "AGPL",
+    "author": "mickadam29",
+    "require": "4.2",
+    "category": "home automation protocol",
+    "changelog": "",
+    "documentation": ""
+}
