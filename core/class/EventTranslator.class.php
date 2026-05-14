@@ -54,7 +54,8 @@ class EventTranslator extends eqLogic {
                                 if (is_object($actionCmd)) {
                                     $cmdOptions = [];
                                     if (!empty($mapping['cmd_options'])) {
-                                        $cmdOptions['value'] = $mapping['cmd_options'];
+                                        $subType = $actionCmd->getSubType();
+                                        $cmdOptions[$subType] = $mapping['cmd_options'];
                                     }
                                     $actionCmd->execCmd($cmdOptions);
                                 }
