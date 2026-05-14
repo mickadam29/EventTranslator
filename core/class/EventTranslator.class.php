@@ -146,7 +146,8 @@ class EventTranslator extends eqLogic {
         }
         $this->save();
 
-        $keptCmdIds = [];
+        $keptCmdIds  = [];
+        $usedNames   = [];
 
         foreach ($_cmdsData as $cmdData) {
             $sourceCmdId = $cmdData['source_cmd_id'] ?? '';
@@ -177,6 +178,10 @@ class EventTranslator extends eqLogic {
             $cmd->setSubType($subtype);
 
             $cmdName = !empty($cmdData['name']) ? $cmdData['name'] : $sourceCmd->getName();
+            if (in_array($cmdName, $usedNames)) {
+                $cmdName = $cmdName . ' (' . $sourceCmd->getEqLogic()->getName() . ')';
+            }
+            $usedNames[] = $cmdName;
             $cmd->setName($cmdName);
             $cmd->setConfiguration('source_cmd_human', $sourceCmd->getHumanName());
             $cmd->setConfiguration('mappings', $cmdData['mappings'] ?? []);
