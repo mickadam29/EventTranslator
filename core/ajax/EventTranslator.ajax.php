@@ -41,13 +41,6 @@ try {
             if (!is_object($eqLogic) || $eqLogic->getEqType_name() !== 'EventTranslator') {
                 throw new Exception(__('Équipement EventTranslator introuvable.', __FILE__));
             }
-            $virtualId = $eqLogic->getConfiguration('virtual_eqLogic_id');
-            if (!empty($virtualId)) {
-                $virtual = eqLogic::byId($virtualId);
-                if (is_object($virtual)) {
-                    $virtual->remove();
-                }
-            }
             $eqLogic->remove();
             ajax::success();
             break;
@@ -65,6 +58,19 @@ try {
             $cmdsData    = json_decode(init('cmds'), true) ?: [];
             $eqLogic->saveWithCmds($eqLogicData, $cmdsData);
             ajax::success();
+            break;
+
+        case 'getCmdValue':
+            $cmdId = init('cmd_id');
+            $cmd = cmd::byId($cmdId);
+            if (!is_object($cmd)) {
+                throw new Exception(__('Commande introuvable.', __FILE__));
+            }
+            $value = ($cmd->getType() === 'info') ? $cmd->execCmd() : null;
+            ajax::success([
+                'value'       => (string)($value ?? ''),
+                'collectDate' => $cmd->getCollectDate(),
+            ]);
             break;
 
         default:

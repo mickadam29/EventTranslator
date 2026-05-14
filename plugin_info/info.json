@@ -1,8 +1,8 @@
 {
     "id": "EventTranslator",
     "name": "EventTranslator",
-    "description": "Traduit en temps réel les valeurs d'une commande info source : mise à jour d'une commande virtuelle, déclenchement d'action ou de scénario.",
-    "licence": "AGPL",
+    "description": "Traduit en temps réel les valeurs d'une commande info source : mise à jour d'une commande info, déclenchement d'action ou de scénario.",
+    "licence": "proprietary",
     "author": "mickadam29",
     "require": "4.2",
     "category": "programming",

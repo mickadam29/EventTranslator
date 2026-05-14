@@ -8,63 +8,76 @@ $eqLogics = eqLogic::byType('EventTranslator');
 
 <div class="row row-overflow">
 
-    <!-- Panneau gauche : liste des équipements -->
-    <div class="col-xs-12 col-sm-3" id="div_leftThumbnailList">
-        <legend>
-            <i class="fas fa-exchange-alt"></i> {{EventTranslator}}
-            <a class="btn btn-default btn-xs pull-right" id="bt_addEqLogic" title="{{Ajouter}}">
-                <i class="fas fa-plus-circle"></i> {{Ajouter}}
-            </a>
-            <br><small class="text-muted">{{Mes équipements}}</small>
-        </legend>
-        <div class="form-group" style="margin-bottom:5px;">
-            <input type="text" id="in_searchEqLogic" class="form-control input-sm" placeholder="{{Rechercher...}}" />
+    <!-- VUE LISTE -->
+    <div id="div_listView" class="col-xs-12">
+
+        <div class="eqLogicThumbnailContainer" style="margin-bottom:10px;">
+            <div class="eqLogicThumbnailDisplay logoPrimary cursor"
+                 id="bt_addEqLogic" title="{{Ajouter un équipement}}">
+                <i class="fas fa-plus-circle"></i>
+                <br><span>{{Ajouter}}</span>
+            </div>
+            <div class="eqLogicThumbnailDisplay logoSecondary eqLogicAction cursor"
+                 data-action="gotoPluginConf" title="{{Configuration}}">
+                <i class="fas fa-wrench"></i>
+                <br><span>{{Configuration}}</span>
+            </div>
         </div>
-        <div id="div_eqLogicList" style="max-height:calc(100vh - 220px);overflow-y:auto;">
-            <?php foreach ($eqLogics as $eqLogic) { ?>
-            <?php
-            $srcType = $eqLogic->getConfiguration('source_eqType');
-            $iconUrl = $srcType ? 'plugins/' . $srcType . '/plugin_info/' . $srcType . '.png' : '';
+
+        <div class="input-group" style="max-width:350px; margin-bottom:15px;">
+            <span class="input-group-addon"><i class="fas fa-search"></i></span>
+            <input type="text" id="in_searchEqLogic" class="form-control"
+                   placeholder="{{Rechercher un équipement...}}" />
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" id="bt_resetSearch" title="{{Effacer}}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </span>
+        </div>
+
+        <div class="eqLogicThumbnailContainer" id="div_eqLogicList">
+            <?php foreach ($eqLogics as $eqLogic) {
+                $iconUrl = $eqLogic->getConfiguration('source_icon_url');
+                if (empty($iconUrl)) {
+                    $srcType = $eqLogic->getConfiguration('source_eqType');
+                    $srcPlugin = $srcType ? plugin::byId($srcType) : null;
+                    $iconUrl = is_object($srcPlugin) ? $srcPlugin->getPathImgIcon() : 'core/img/no-image-plugin.png';
+                }
             ?>
-            <div class="eqLogicDisplayCard cursor <?= ($eqLogic->getIsEnable() == 0) ? 'opacity05' : '' ?>"
+            <div class="eqLogicThumbnailDisplay cursor <?= ($eqLogic->getIsEnable() == 0) ? 'opacity05' : '' ?>"
                  data-eqLogic_id="<?= $eqLogic->getId() ?>">
-                <?php if ($iconUrl): ?>
-                <img src="<?= $iconUrl ?>" style="width:32px;height:32px;"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
-                <i class="fas fa-exchange-alt fa-2x" style="display:none;"></i>
-                <?php else: ?>
-                <i class="fas fa-exchange-alt fa-2x"></i>
-                <?php endif; ?>
+                <img src="<?= $iconUrl ?>" style="width:48px;height:48px;" />
                 <br>
-                <span class="name"><?= $eqLogic->getName() ?></span><br>
-                <span class="hiddenAsCard"><?= ($eqLogic->getObject() != null) ? $eqLogic->getObject()->getName() : '' ?></span>
+                <span class="name"><?= $eqLogic->getName() ?></span>
+                <?php if ($eqLogic->getObject() !== null): ?>
+                <br><small class="text-muted"><?= $eqLogic->getObject()->getName() ?></small>
+                <?php endif; ?>
             </div>
             <?php } ?>
         </div>
     </div>
 
-    <!-- Panneau droit : détail de l'équipement -->
-    <div class="col-xs-12 col-sm-9" id="div_rightThumbnailList" style="display:none;">
+    <!-- VUE DETAIL -->
+    <div id="div_detailView" class="col-xs-12" style="display:none;">
         <div id="div_eqLogicDetail">
 
-            <!-- Champs cachés -->
             <input type="hidden" id="in_eqLogicId" value="" />
             <input type="hidden" id="in_sourceEqLogicId" value="" />
-            <input type="hidden" id="in_virtualEqLogicId" value="" />
 
-            <!-- Barre d'actions + onglets sur la même ligne -->
-            <div class="input-group pull-right" style="display:inline-flex;margin-bottom:5px;">
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-success roundedLeft" id="bt_saveEqLogic">
-                        <i class="fas fa-check-circle"></i> {{Sauvegarder}}
-                    </a><a class="btn btn-sm btn-danger roundedRight" id="bt_removeEqLogic">
-                        <i class="fas fa-minus-circle"></i> {{Supprimer}}
-                    </a>
-                </span>
+            <div class="pull-right" style="margin-bottom:5px;">
+                <a class="btn btn-sm btn-success roundedLeft" id="bt_saveEqLogic">
+                    <i class="fas fa-check-circle"></i> {{Sauvegarder}}
+                </a><a class="btn btn-sm btn-danger roundedRight" id="bt_removeEqLogic">
+                    <i class="fas fa-minus-circle"></i> {{Supprimer}}
+                </a>
             </div>
 
-            <!-- Onglets -->
             <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation">
+                    <a href="#" id="bt_backToList">
+                        <i class="fas fa-arrow-left"></i> {{Retour}}
+                    </a>
+                </li>
                 <li role="presentation" class="active">
                     <a href="#tab_general" role="tab" data-toggle="tab">
                         <i class="fas fa-home"></i> {{Général}}
@@ -79,13 +92,13 @@ $eqLogics = eqLogic::byType('EventTranslator');
 
             <div class="tab-content" style="padding-top:15px;">
 
-                <!-- Onglet Général -->
                 <div role="tabpanel" class="tab-pane active" id="tab_general">
                     <div class="form-horizontal">
                         <div class="form-group">
                             <label class="col-sm-3 control-label">{{Nom}}</label>
                             <div class="col-sm-5">
-                                <input type="text" id="in_eqLogicName" class="form-control" placeholder="{{Nom de l'équipement}}" />
+                                <input type="text" id="in_eqLogicName" class="form-control"
+                                       placeholder="{{Nom de l'équipement}}" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -115,16 +128,9 @@ $eqLogics = eqLogic::byType('EventTranslator');
                                 <input type="text" id="in_sourceEqLogicName" class="form-control" readonly />
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Équipement virtuel}}</label>
-                            <div class="col-sm-5">
-                                <input type="text" id="in_virtualEqLogicName" class="form-control" readonly />
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Onglet Commandes -->
                 <div role="tabpanel" class="tab-pane" id="tab_cmds">
                     <a class="btn btn-default btn-sm" id="bt_addCmd">
                         <i class="fas fa-plus-circle"></i> {{Ajouter une commande}}
@@ -133,11 +139,11 @@ $eqLogics = eqLogic::byType('EventTranslator');
                     <div id="div_cmdList"></div>
                 </div>
 
-            </div><!-- /.tab-content -->
-        </div><!-- /#div_eqLogicDetail -->
-    </div><!-- /#div_rightThumbnailList -->
+            </div>
+        </div>
+    </div>
 
-</div><!-- /.row -->
+</div>
 
 <!-- Template commande -->
 <div id="tmpl_cmd" style="display:none;">
@@ -149,19 +155,22 @@ $eqLogics = eqLogic::byType('EventTranslator');
                     <span class="et_cmd_source_human text-muted">-</span>
                 </div>
                 <div class="col-sm-3">
-                    <label>{{Nom virtuel}}</label>
-                    <input type="text" class="et_cmd_name form-control input-sm" placeholder="{{Nom de la commande virtuelle}}" />
+                    <label>{{Nom}}</label>
+                    <input type="text" class="et_cmd_name form-control input-sm"
+                           placeholder="{{Nom de la commande}}" />
                 </div>
                 <div class="col-sm-2">
-                    <label>{{Type virtuel}}</label>
+                    <label>{{Type}}</label>
                     <select class="et_cmd_subtype form-control input-sm">
                         <option value="string">{{Texte}}</option>
                         <option value="numeric">{{Numérique}}</option>
                         <option value="binary">{{Binaire}}</option>
                     </select>
                 </div>
-                <div class="col-sm-4 text-right">
-                    <a class="btn btn-xs btn-danger bt_removeCmd"><i class="fas fa-times"></i> {{Supprimer}}</a>
+                <div class="col-sm-3 text-right">
+                    <a class="btn btn-xs btn-danger bt_removeCmd">
+                        <i class="fas fa-times"></i> {{Supprimer}}
+                    </a>
                 </div>
             </div>
         </div>
@@ -177,9 +186,14 @@ $eqLogics = eqLogic::byType('EventTranslator');
                 </thead>
                 <tbody class="et_mapping_body"></tbody>
             </table>
-            <a class="btn btn-xs btn-default bt_addMapping">
-                <i class="fas fa-plus"></i> {{Ajouter une règle}}
-            </a>
+            <div style="margin-top:12px; margin-bottom:15px; display:inline-flex; gap:6px;">
+                <a class="btn btn-xs btn-default bt_addMapping">
+                    <i class="fas fa-plus"></i> {{Ajouter une règle}}
+                </a>
+                <a class="btn btn-xs btn-success bt_learnMapping">
+                    <i class="fas fa-headphones"></i> {{Apprendre}}
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -188,7 +202,8 @@ $eqLogics = eqLogic::byType('EventTranslator');
 <table id="tmpl_mapping" style="display:none;"><tbody>
     <tr class="et_mapping_row">
         <td>
-            <input type="text" class="form-control input-sm et_mapping_source" placeholder="{{Valeur source}}" />
+            <input type="text" class="form-control input-sm et_mapping_source"
+                   placeholder="{{Valeur source}}" />
         </td>
         <td>
             <select class="form-control input-sm et_mapping_type">
@@ -199,11 +214,13 @@ $eqLogics = eqLogic::byType('EventTranslator');
         </td>
         <td>
             <div class="et_target_value">
-                <input type="text" class="form-control input-sm et_mapping_value" placeholder="{{Valeur traduite}}" />
+                <input type="text" class="form-control input-sm et_mapping_value"
+                       placeholder="{{Valeur traduite}}" />
             </div>
             <div class="et_target_cmd" style="display:none;">
                 <div class="input-group input-group-sm">
-                    <input type="text" class="form-control et_mapping_cmd_human" readonly placeholder="{{Objet > Équipement > Commande}}" />
+                    <input type="text" class="form-control et_mapping_cmd_human" readonly
+                           placeholder="{{Objet > Équipement > Commande}}" />
                     <input type="hidden" class="et_mapping_cmd_id" value="" />
                     <input type="hidden" class="et_mapping_cmd_options" value="" />
                     <span class="input-group-btn">
@@ -213,7 +230,8 @@ $eqLogics = eqLogic::byType('EventTranslator');
             </div>
             <div class="et_target_scenario" style="display:none;">
                 <div class="input-group input-group-sm">
-                    <input type="text" class="form-control et_mapping_scenario_human" readonly placeholder="{{Scénario}}" />
+                    <input type="text" class="form-control et_mapping_scenario_human" readonly
+                           placeholder="{{Scénario}}" />
                     <input type="hidden" class="et_mapping_scenario_id" value="" />
                     <span class="input-group-btn">
                         <a class="btn btn-default bt_selectScenario"><i class="fas fa-search"></i></a>

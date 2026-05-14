@@ -28,7 +28,7 @@ class EventTranslator extends eqLogic {
 
     public static function cmdChange($options) {
         $sourceCmdId = $options['event_id'];
-        $value = $options['value'];
+        $value       = $options['value'];
         foreach (eqLogic::byType('EventTranslator') as $eqLogic) {
             if (!$eqLogic->getIsEnable()) {
                 continue;
@@ -45,13 +45,8 @@ class EventTranslator extends eqLogic {
                     $type = $mapping['type'] ?? 'value';
                     switch ($type) {
                         case 'value':
-                            $virtualCmdId = $cmd->getConfiguration('virtual_cmd_id');
-                            if (!empty($virtualCmdId)) {
-                                $virtualCmd = cmd::byId($virtualCmdId);
-                                if (is_object($virtualCmd)) {
-                                    $virtualCmd->event($mapping['value'] ?? '');
-                                }
-                            }
+                            $cmd->setConfiguration('repeatEventManagement', 'always');
+                            $cmd->event($mapping['value'] ?? '');
                             break;
                         case 'cmd':
                             if (!empty($mapping['cmd_id'])) {
@@ -99,37 +94,25 @@ class EventTranslator extends eqLogic {
         if (!is_object($source)) {
             throw new Exception(__('Équipement source introuvable.', __FILE__));
         }
-        self::_loadVirtualClass();
-
-        $virtual = new virtual();
-        $virtual->setName($source->getName() . '_virt');
-        $virtual->setLogicalId('ET_virt_' . $_sourceEqLogicId);
-        $virtual->setEqType_name('virtual');
-        $virtual->setIsEnable(1);
-        $virtual->setIsVisible(0);
-        $virtual->setObject_id($source->getObject_id());
-        $virtual->save();
 
         $eqLogic = new EventTranslator();
-        $eqLogic->setName($source->getName() . '_eventt');
+        $eqLogic->setName($source->getName() . '_et');
         $eqLogic->setLogicalId('ET_' . $_sourceEqLogicId);
         $eqLogic->setEqType_name('EventTranslator');
         $eqLogic->setIsEnable(1);
-        $eqLogic->setIsVisible(0);
+        $eqLogic->setIsVisible(1);
         $eqLogic->setObject_id($source->getObject_id());
         $eqLogic->setConfiguration('source_eqLogic_id', (string)$_sourceEqLogicId);
         $eqLogic->setConfiguration('source_eqLogic_human', $source->getHumanName());
         $eqLogic->setConfiguration('source_eqType', $source->getEqType_name());
-        $eqLogic->setConfiguration('virtual_eqLogic_id', (string)$virtual->getId());
-        $eqLogic->setConfiguration('virtual_eqLogic_human', $virtual->getHumanName());
+        $srcPlugin = plugin::byId($source->getEqType_name());
+        $eqLogic->setConfiguration('source_icon_url', is_object($srcPlugin) ? $srcPlugin->getPathImgIcon() : 'core/img/no-image-plugin.png');
         $eqLogic->save();
 
         return $eqLogic;
     }
 
     public function saveWithCmds($_eqLogicData, $_cmdsData) {
-        self::_loadVirtualClass();
-
         if (isset($_eqLogicData['name']) && $_eqLogicData['name'] !== '') {
             $this->setName($_eqLogicData['name']);
         }
@@ -144,7 +127,6 @@ class EventTranslator extends eqLogic {
         }
         $this->save();
 
-        $virtualId = $this->getConfiguration('virtual_eqLogic_id');
         $keptCmdIds = [];
 
         foreach ($_cmdsData as $cmdData) {
@@ -177,25 +159,8 @@ class EventTranslator extends eqLogic {
             $cmdName = !empty($cmdData['name']) ? $cmdData['name'] : $sourceCmd->getName();
             $cmd->setName($cmdName);
             $cmd->setConfiguration('source_cmd_human', $sourceCmd->getHumanName());
-            $cmd->setConfiguration('virtual_subtype', $subtype);
             $cmd->setConfiguration('mappings', $cmdData['mappings'] ?? []);
-            $cmd->save();
-
-            $virtualCmdId = $cmd->getConfiguration('virtual_cmd_id');
-            $virtualCmd = null;
-            if (!empty($virtualCmdId)) {
-                $virtualCmd = cmd::byId($virtualCmdId);
-            }
-            if (!is_object($virtualCmd)) {
-                $virtualCmd = new virtualCmd();
-                $virtualCmd->setEqLogic_id($virtualId);
-                $virtualCmd->setType('info');
-            }
-            $virtualCmd->setSubType($subtype);
-            $virtualCmd->setName($cmdName);
-            $virtualCmd->save();
-
-            $cmd->setConfiguration('virtual_cmd_id', (string)$virtualCmd->getId());
+            $cmd->setConfiguration('repeatEventManagement', 'always');
             $cmd->save();
 
             $keptCmdIds[] = $cmd->getId();
@@ -214,47 +179,12 @@ class EventTranslator extends eqLogic {
         EventTranslator::rebuildAllListeners();
     }
 
-    public function preRemove() {
-        $virtualId = $this->getConfiguration('virtual_eqLogic_id');
-        if (!empty($virtualId)) {
-            $virtual = eqLogic::byId($virtualId);
-            if (is_object($virtual)) {
-                $virtual->remove();
-            }
-        }
-    }
-
     public function postRemove() {
         EventTranslator::rebuildAllListeners();
-    }
-
-    private static function _loadVirtualClass() {
-        if (class_exists('virtual')) {
-            return;
-        }
-        $pluginsDir = dirname(dirname(dirname(dirname(__FILE__))));
-        $path = $pluginsDir . '/virtual/core/class/virtual.class.php';
-        if (!file_exists($path)) {
-            throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
-        }
-        require_once $path;
-        if (!class_exists('virtual')) {
-            throw new Exception(__('Le plugin Virtuel doit être installé et activé dans Jeedom.', __FILE__));
-        }
     }
 }
 
 class EventTranslatorCmd extends cmd {
-
-    public function preRemove() {
-        $virtualCmdId = $this->getConfiguration('virtual_cmd_id');
-        if (!empty($virtualCmdId)) {
-            $virtualCmd = cmd::byId($virtualCmdId);
-            if (is_object($virtualCmd)) {
-                $virtualCmd->remove();
-            }
-        }
-    }
 
     public function execute($_options = []) {
         return $this->getValue();

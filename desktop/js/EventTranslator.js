@@ -8,6 +8,16 @@ var ET = {
     currentEqLogicId: null,
     sourceEqLogicId: null,
 
+    _learning: {
+        interval:        null,
+        countdown:       0,
+        $btn:            null,
+        $body:           null,
+        cmdId:           null,
+        lastValue:       null,
+        lastCollectDate: null
+    },
+
     init: function () {
         $(document).off('.ET');
         ET._bindList();
@@ -16,16 +26,28 @@ var ET = {
 
     /* ---------- Liste gauche ---------- */
     _bindList: function () {
-        $(document).on('click.ET', '.eqLogicDisplayCard', function () {
+        $(document).on('click.ET', '#div_eqLogicList [data-eqLogic_id]', function () {
             ET.loadEqLogic($(this).attr('data-eqLogic_id'));
         });
 
         $(document).on('input.ET', '#in_searchEqLogic', function () {
             var search = $(this).val().toLowerCase();
-            $('#div_eqLogicList .eqLogicDisplayCard').each(function () {
+            $('#div_eqLogicList [data-eqLogic_id]').each(function () {
                 var name = $(this).find('.name').text().toLowerCase();
                 $(this).toggle(name.indexOf(search) !== -1);
             });
+        });
+
+        $(document).on('click.ET', '#bt_resetSearch', function () {
+            $('#in_searchEqLogic').val('').trigger('input');
+        });
+
+        $(document).on('click.ET', '#bt_backToList', function (e) {
+            e.preventDefault();
+            ET._stopLearning();
+            ET.currentEqLogicId = null;
+            $('#div_detailView').hide();
+            $('#div_listView').show();
         });
 
         $(document).on('click.ET', '#bt_addEqLogic', function () {
@@ -94,6 +116,22 @@ var ET = {
             ET._addMappingRow($(this).closest('.panel-body').find('.et_mapping_body'), {});
         });
 
+        $(document).on('click.ET', '.bt_learnMapping', function () {
+            var $btn = $(this);
+            var $panel = $btn.closest('.et_cmd');
+            var sourceCmdId = $panel.attr('data-source_cmd_id');
+            if (!sourceCmdId) {
+                $.fn.showAlert({ message: '{{Aucune commande source définie.}}', level: 'warning' });
+                return;
+            }
+            if (ET._learning.interval !== null) {
+                ET._stopLearning();
+                return;
+            }
+            var $body = $panel.find('.et_mapping_body');
+            ET._startLearning($btn, sourceCmdId, $body);
+        });
+
         $(document).on('click.ET', '.bt_removeMapping', function () {
             $(this).closest('.et_mapping_row').remove();
         });
@@ -147,9 +185,7 @@ var ET = {
 
                 var cfg = eq.configuration || {};
                 $('#in_sourceEqLogicId').val(cfg.source_eqLogic_id || '');
-                $('#in_virtualEqLogicId').val(cfg.virtual_eqLogic_id || '');
                 $('#in_sourceEqLogicName').val(cfg.source_eqLogic_human || cfg.source_eqLogic_id || '');
-                $('#in_virtualEqLogicName').val(cfg.virtual_eqLogic_human || cfg.virtual_eqLogic_id || '');
 
                 // Charger les commandes depuis la réponse
                 $('#div_cmdList').empty();
@@ -162,9 +198,10 @@ var ET = {
                     });
                 }
 
-                $('.eqLogicDisplayCard').removeClass('active');
-                $('.eqLogicDisplayCard[data-eqLogic_id="' + id + '"]').addClass('active');
-                $('#div_rightThumbnailList').show();
+                $('#div_eqLogicList [data-eqLogic_id]').removeClass('active');
+                $('#div_eqLogicList [data-eqLogic_id="' + id + '"]').addClass('active');
+                $('#div_listView').hide();
+                $('#div_detailView').show();
             },
             error: function () {
                 $.fn.showAlert({ message: '{{Erreur lors du chargement.}}', level: 'danger' });
@@ -264,6 +301,85 @@ var ET = {
                 $.fn.showAlert({ message: '{{Erreur lors du chargement des commandes.}}', level: 'danger' });
             }
         });
+    },
+
+    /* ---------- Mode apprentissage ---------- */
+    _startLearning: function ($btn, cmdId, $body) {
+        var L = ET._learning;
+        $.ajax({
+            type: 'POST',
+            url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
+            data: { action: 'getCmdValue', cmd_id: cmdId },
+            dataType: 'json',
+            success: function (data) {
+                if (data.state !== 'ok') {
+                    $.fn.showAlert({ message: '{{Impossible de lire la commande source.}}', level: 'danger' });
+                    return;
+                }
+                L.$btn            = $btn;
+                L.$body           = $body;
+                L.cmdId           = cmdId;
+                L.lastValue       = data.result.value;
+                L.lastCollectDate = data.result.collectDate;
+                L.countdown       = 30;
+                $btn.removeClass('btn-success').addClass('btn-danger')
+                    .html('<i class="fas fa-stop"></i> {{Terminer}} (' + L.countdown + 's)');
+                L.interval = setInterval(function () { ET._pollLearning(); }, 1000);
+            },
+            error: function () {
+                $.fn.showAlert({ message: '{{Erreur lors de la lecture de la commande.}}', level: 'danger' });
+            }
+        });
+    },
+
+    _pollLearning: function () {
+        var L = ET._learning;
+        L.countdown--;
+        L.$btn.html('<i class="fas fa-stop"></i> {{Terminer}} (' + L.countdown + 's)');
+        if (L.countdown <= 0) {
+            ET._stopLearning();
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
+            data: { action: 'getCmdValue', cmd_id: L.cmdId },
+            dataType: 'json',
+            success: function (data) {
+                if (data.state !== 'ok') { return; }
+                var newVal         = data.result.value;
+                var newCollectDate = data.result.collectDate;
+                var changed = (newVal !== '' && newVal !== L.lastValue) ||
+                              (newCollectDate !== L.lastCollectDate && newVal !== '');
+                if (changed) {
+                    L.lastValue       = newVal;
+                    L.lastCollectDate = newCollectDate;
+                    L.countdown       = 30;
+                    var alreadyKnown = false;
+                    L.$body.find('.et_mapping_source').each(function () {
+                        if ($(this).val() === newVal) { alreadyKnown = true; return false; }
+                    });
+                    if (!alreadyKnown) {
+                        ET._addMappingRow(L.$body, { source: newVal });
+                    }
+                }
+            }
+        });
+    },
+
+    _stopLearning: function () {
+        var L = ET._learning;
+        if (L.interval !== null) {
+            clearInterval(L.interval);
+            L.interval = null;
+        }
+        if (L.$btn) {
+            L.$btn.removeClass('btn-danger').addClass('btn-success')
+                .html('<i class="fas fa-headphones"></i> {{Apprendre}}');
+            L.$btn = null;
+        }
+        L.$body = L.cmdId = L.lastValue = L.lastCollectDate = null;
+        L.countdown = 0;
     },
 
     /* ---------- Ligne de mapping ---------- */
@@ -383,13 +499,10 @@ var ET = {
     /* ---------- Ajouter une carte dans la liste ---------- */
     _appendCard: function (eq) {
         var cfg = eq.configuration || {};
-        var srcType = cfg.source_eqType || '';
-        var iconHtml = srcType
-            ? '<img src="plugins/' + srcType + '/plugin_info/' + srcType + '.png" style="width:32px;height:32px;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';" /><i class="fas fa-exchange-alt fa-2x" style="display:none;"></i>'
-            : '<i class="fas fa-exchange-alt fa-2x"></i>';
-        var html = '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' + eq.id + '">'
-            + iconHtml + '<br>'
-            + '<span class="name">' + (eq.name || '') + '</span>'
+        var iconSrc = cfg.source_icon_url || 'core/img/no-image-plugin.png';
+        var html = '<div class="eqLogicThumbnailDisplay cursor" data-eqLogic_id="' + eq.id + '">'
+            + '<img src="' + iconSrc + '" style="width:48px;height:48px;" />'
+            + '<br><span class="name">' + (eq.name || '') + '</span>'
             + '</div>';
         $('#div_eqLogicList').append(html);
     }
