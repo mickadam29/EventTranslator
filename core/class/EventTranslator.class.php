@@ -74,6 +74,21 @@ class EventTranslator extends eqLogic {
         }
     }
 
+    public function getImage() {
+        $iconUrl = $this->getConfiguration('source_icon_url');
+        if (!empty($iconUrl)) {
+            return $iconUrl;
+        }
+        $srcType = $this->getConfiguration('source_eqType');
+        if ($srcType) {
+            $plugin = plugin::byId($srcType);
+            if (is_object($plugin)) {
+                return $plugin->getPathImgIcon();
+            }
+        }
+        return parent::getImage();
+    }
+
     public static function sourceIsUsed($_sourceId, $_excludeId = null) {
         foreach (eqLogic::byType('EventTranslator') as $eqLogic) {
             if ($_excludeId !== null && $eqLogic->getId() == $_excludeId) {
@@ -93,6 +108,9 @@ class EventTranslator extends eqLogic {
         $source = eqLogic::byId($_sourceEqLogicId);
         if (!is_object($source)) {
             throw new Exception(__('Équipement source introuvable.', __FILE__));
+        }
+        if ($source->getEqType_name() === 'EventTranslator') {
+            throw new Exception(__('Un équipement EventTranslator ne peut pas être utilisé comme source.', __FILE__));
         }
 
         $eqLogic = new EventTranslator();

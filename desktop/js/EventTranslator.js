@@ -1,9 +1,5 @@
 'use strict';
 
-/* ============================================================
-   EventTranslator — JS principal
-   ============================================================ */
-
 var ET = {
     currentEqLogicId: null,
     sourceEqLogicId: null,
@@ -24,30 +20,27 @@ var ET = {
         ET._bindDetail();
     },
 
-    /* ---------- Liste gauche ---------- */
+    /* ---------- Liste ---------- */
     _bindList: function () {
         $(document).on('click.ET', '#div_eqLogicList [data-eqLogic_id]', function () {
             ET.loadEqLogic($(this).attr('data-eqLogic_id'));
         });
 
-        $(document).on('input.ET', '#in_searchEqLogic', function () {
+        $(document).on('input.ET', '#in_searchEqlogic', function () {
             var search = $(this).val().toLowerCase();
             $('#div_eqLogicList [data-eqLogic_id]').each(function () {
-                var name = $(this).find('.name').text().toLowerCase();
-                $(this).toggle(name.indexOf(search) !== -1);
+                $(this).toggle($(this).find('.name').text().toLowerCase().indexOf(search) !== -1);
             });
         });
 
         $(document).on('click.ET', '#bt_resetSearch', function () {
-            $('#in_searchEqLogic').val('').trigger('input');
+            $('#in_searchEqlogic').val('').trigger('input');
         });
 
-        $(document).on('click.ET', '#bt_backToList', function (e) {
-            e.preventDefault();
+        /* Appelé par plugin.template.js via data-action="returnToThumbnailDisplay" */
+        $(document).on('click.ET', '.eqLogicAction[data-action="returnToThumbnailDisplay"]', function () {
             ET._stopLearning();
             ET.currentEqLogicId = null;
-            $('#div_detailView').hide();
-            $('#div_listView').show();
         });
 
         $(document).on('click.ET', '#bt_addEqLogic', function () {
@@ -64,6 +57,7 @@ var ET = {
                             return;
                         }
                         var eq = data.result;
+                        $('#span_noEqLogic').remove();
                         ET._appendCard(eq);
                         ET.loadEqLogic(eq.id);
                     },
@@ -92,9 +86,10 @@ var ET = {
                             $.fn.showAlert({ message: data.result, level: 'danger' });
                             return;
                         }
-                        var params = new URLSearchParams(window.location.search);
-                        params.delete('id');
-                        window.location.href = window.location.pathname + '?' + params.toString();
+                        $('.et_card[data-eqLogic_id="' + ET.currentEqLogicId + '"]').remove();
+                        ET.currentEqLogicId = null;
+                        $('.eqLogic').hide();
+                        $('.eqLogicThumbnailDisplay').show();
                     },
                     error: function () {
                         $.fn.showAlert({ message: '{{Erreur lors de la suppression.}}', level: 'danger' });
@@ -128,8 +123,7 @@ var ET = {
                 ET._stopLearning();
                 return;
             }
-            var $body = $panel.find('.et_mapping_body');
-            ET._startLearning($btn, sourceCmdId, $body);
+            ET._startLearning($btn, sourceCmdId, $panel.find('.et_mapping_body'));
         });
 
         $(document).on('click.ET', '.bt_removeMapping', function () {
@@ -187,11 +181,9 @@ var ET = {
                 $('#in_sourceEqLogicId').val(cfg.source_eqLogic_id || '');
                 $('#in_sourceEqLogicName').val(cfg.source_eqLogic_human || cfg.source_eqLogic_id || '');
 
-                // Charger les commandes depuis la réponse
                 $('#div_cmdList').empty();
                 if (Array.isArray(eq.cmd)) {
                     eq.cmd.forEach(function (cmd) {
-                        // Filtrer : uniquement les commandes EventTranslatorCmd (type info avec source_cmd_id)
                         if (cmd.type === 'info' && cmd.configuration && cmd.configuration.source_cmd_id) {
                             ET._renderCmd(cmd);
                         }
@@ -200,8 +192,15 @@ var ET = {
 
                 $('#div_eqLogicList [data-eqLogic_id]').removeClass('active');
                 $('#div_eqLogicList [data-eqLogic_id="' + id + '"]').addClass('active');
-                $('#div_listView').hide();
-                $('#div_detailView').show();
+
+                /* Basculer vers la vue détail (standard Jeedom) */
+                $('.eqLogicThumbnailDisplay').hide();
+                $('.eqLogic').show();
+                /* Réinitialiser sur le premier onglet */
+                $('.eqLogic .nav-tabs li').removeClass('active');
+                $('.eqLogic .nav-tabs li:nth-child(2)').addClass('active');
+                $('.eqLogic .tab-pane').removeClass('active');
+                $('#tab_general').addClass('active');
             },
             error: function () {
                 $.fn.showAlert({ message: '{{Erreur lors du chargement.}}', level: 'danger' });
@@ -219,10 +218,8 @@ var ET = {
         $panel.attr('data-cmd_id', cmd.id || '');
         $panel.attr('data-source_cmd_id', srcCmdId);
         $tmpl.find('.et_cmd_name').val(cmd.name || '');
-        var subtype = (cmd.configuration && cmd.configuration.virtual_subtype) ? cmd.configuration.virtual_subtype : 'string';
-        $tmpl.find('.et_cmd_subtype').val(subtype);
+        $tmpl.find('.et_cmd_subtype').val(cmd.subType || 'string');
 
-        // Affichage nom source (stocké ou récupéré)
         var humanStored = cmd.configuration ? cmd.configuration.source_cmd_human : '';
         if (humanStored) {
             $tmpl.find('.et_cmd_source_human').text(humanStored);
@@ -234,7 +231,6 @@ var ET = {
             });
         }
 
-        // Lignes de mapping
         var $tbody = $tmpl.find('.et_mapping_body');
         mappings.forEach(function (mapping) { ET._addMappingRow($tbody, mapping); });
 
@@ -286,6 +282,7 @@ var ET = {
                                 ET._renderCmd({
                                     id: '',
                                     name: cmd.name,
+                                    subType: 'string',
                                     configuration: {
                                         source_cmd_id: cmdId,
                                         source_cmd_human: '[' + sourceName + '][' + cmd.name + ']',
@@ -483,10 +480,9 @@ var ET = {
                     return;
                 }
                 $.fn.showAlert({ message: '{{Sauvegardé avec succès.}}', level: 'success' });
-                // Mise à jour nom carte + rechargement complet
                 var name = collected.eqLogicData.name;
                 if (name) {
-                    $('.eqLogicDisplayCard[data-eqLogic_id="' + ET.currentEqLogicId + '"] .name').text(name);
+                    $('.et_card[data-eqLogic_id="' + ET.currentEqLogicId + '"] .name').text(name);
                 }
                 ET.loadEqLogic(ET.currentEqLogicId);
             },
@@ -500,9 +496,9 @@ var ET = {
     _appendCard: function (eq) {
         var cfg = eq.configuration || {};
         var iconSrc = cfg.source_icon_url || 'core/img/no-image-plugin.png';
-        var html = '<div class="eqLogicThumbnailDisplay cursor" data-eqLogic_id="' + eq.id + '">'
-            + '<img src="' + iconSrc + '" style="width:48px;height:48px;" />'
-            + '<br><span class="name">' + (eq.name || '') + '</span>'
+        var html = '<div class="et_card cursor" data-eqLogic_id="' + eq.id + '">'
+            + '<img class="et_icon" src="' + iconSrc + '" onerror="this.onerror=null;this.src=\'core/img/no-image-plugin.png\';" />'
+            + '<span class="name">' + (eq.name || '') + '</span>'
             + '</div>';
         $('#div_eqLogicList').append(html);
     }

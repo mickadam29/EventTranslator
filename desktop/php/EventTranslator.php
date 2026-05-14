@@ -6,144 +6,170 @@ sendVarToJS('eqType', 'EventTranslator');
 $eqLogics = eqLogic::byType('EventTranslator');
 ?>
 
+<style>
+.et_card {
+    display: inline-block;
+    width: 110px;
+    min-height: 115px;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 4px;
+    padding: 10px 5px;
+    margin: 5px;
+    vertical-align: top;
+    overflow: hidden;
+    word-break: break-all;
+    background: rgba(255,255,255,.7);
+}
+.et_card:hover {
+    border-color: #aaa;
+    background: rgba(255,255,255,.9);
+}
+.et_card .et_icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 5px;
+}
+.et_card.opacity05 { opacity: 0.5; }
+</style>
+
 <div class="row row-overflow">
 
-    <!-- VUE LISTE -->
-    <div id="div_listView" class="col-xs-12">
+    <!-- PAGE LISTE -->
+    <div class="col-xs-12 eqLogicThumbnailDisplay">
 
-        <div class="eqLogicThumbnailContainer" style="margin-bottom:10px;">
-            <div class="eqLogicThumbnailDisplay logoPrimary cursor"
-                 id="bt_addEqLogic" title="{{Ajouter un équipement}}">
+        <legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
+        <div class="eqLogicThumbnailContainer">
+            <div class="cursor logoPrimary" id="bt_addEqLogic">
                 <i class="fas fa-plus-circle"></i>
                 <br><span>{{Ajouter}}</span>
             </div>
-            <div class="eqLogicThumbnailDisplay logoSecondary eqLogicAction cursor"
-                 data-action="gotoPluginConf" title="{{Configuration}}">
+            <div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
                 <i class="fas fa-wrench"></i>
                 <br><span>{{Configuration}}</span>
             </div>
         </div>
 
-        <div class="input-group" style="max-width:350px; margin-bottom:15px;">
-            <span class="input-group-addon"><i class="fas fa-search"></i></span>
-            <input type="text" id="in_searchEqLogic" class="form-control"
-                   placeholder="{{Rechercher un équipement...}}" />
-            <span class="input-group-btn">
-                <button class="btn btn-default" type="button" id="bt_resetSearch" title="{{Effacer}}">
-                    <i class="fas fa-times"></i>
-                </button>
-            </span>
+        <legend><i class="fas fa-clone"></i> {{Mes équipements}}</legend>
+        <div class="input-group" style="margin:5px;">
+            <input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic">
+            <div class="input-group-btn">
+                <a id="bt_resetSearch" class="btn" style="width:30px"><i class="fas fa-times"></i></a>
+            </div>
         </div>
-
         <div class="eqLogicThumbnailContainer" id="div_eqLogicList">
-            <?php foreach ($eqLogics as $eqLogic) {
-                $iconUrl = $eqLogic->getConfiguration('source_icon_url');
-                if (empty($iconUrl)) {
-                    $srcType = $eqLogic->getConfiguration('source_eqType');
-                    $srcPlugin = $srcType ? plugin::byId($srcType) : null;
-                    $iconUrl = is_object($srcPlugin) ? $srcPlugin->getPathImgIcon() : 'core/img/no-image-plugin.png';
-                }
+            <?php if (count($eqLogics) == 0): ?>
+            <span class="text-muted" id="span_noEqLogic" style="margin:10px;display:block;">
+                {{Aucun équipement, cliquer sur "Ajouter" pour commencer}}
+            </span>
+            <?php else: ?>
+            <?php foreach ($eqLogics as $eqLogic):
+                $obj = $eqLogic->getObject();
+                $label = $obj !== null
+                    ? htmlspecialchars($obj->getName()) . ' / ' . htmlspecialchars($eqLogic->getName())
+                    : htmlspecialchars($eqLogic->getName());
             ?>
-            <div class="eqLogicThumbnailDisplay cursor <?= ($eqLogic->getIsEnable() == 0) ? 'opacity05' : '' ?>"
+            <div class="et_card cursor <?= ($eqLogic->getIsEnable() == 0) ? 'opacity05' : '' ?>"
                  data-eqLogic_id="<?= $eqLogic->getId() ?>">
-                <img src="<?= $iconUrl ?>" style="width:48px;height:48px;" />
-                <br>
-                <span class="name"><?= $eqLogic->getName() ?></span>
-                <?php if ($eqLogic->getObject() !== null): ?>
-                <br><small class="text-muted"><?= $eqLogic->getObject()->getName() ?></small>
-                <?php endif; ?>
+                <img class="et_icon" src="<?= htmlspecialchars($eqLogic->getImage()) ?>"
+                     onerror="this.onerror=null;this.src='core/img/no-image-plugin.png';" />
+                <span class="name"><?= $label ?></span>
             </div>
-            <?php } ?>
+            <?php endforeach; ?>
+            <?php endif; ?>
         </div>
-    </div>
 
-    <!-- VUE DETAIL -->
-    <div id="div_detailView" class="col-xs-12" style="display:none;">
-        <div id="div_eqLogicDetail">
+    </div><!-- /.eqLogicThumbnailDisplay -->
 
-            <input type="hidden" id="in_eqLogicId" value="" />
-            <input type="hidden" id="in_sourceEqLogicId" value="" />
+    <!-- PAGE DÉTAIL -->
+    <div class="col-xs-12 eqLogic" style="display:none;">
 
-            <div class="pull-right" style="margin-bottom:5px;">
-                <a class="btn btn-sm btn-success roundedLeft" id="bt_saveEqLogic">
-                    <i class="fas fa-check-circle"></i> {{Sauvegarder}}
-                </a><a class="btn btn-sm btn-danger roundedRight" id="bt_removeEqLogic">
-                    <i class="fas fa-minus-circle"></i> {{Supprimer}}
+        <input type="hidden" id="in_eqLogicId" value="" />
+        <input type="hidden" id="in_sourceEqLogicId" value="" />
+
+        <div class="pull-right" style="margin-bottom:5px;">
+            <a class="btn btn-sm btn-success roundedLeft" id="bt_saveEqLogic">
+                <i class="fas fa-check-circle"></i> {{Sauvegarder}}
+            </a><a class="btn btn-sm btn-danger roundedRight" id="bt_removeEqLogic">
+                <i class="fas fa-minus-circle"></i> {{Supprimer}}
+            </a>
+        </div>
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation">
+                <a href="#" class="eqLogicAction" data-action="returnToThumbnailDisplay">
+                    <i class="fas fa-arrow-circle-left"></i>
                 </a>
-            </div>
+            </li>
+            <li role="presentation" class="active">
+                <a href="#tab_general" role="tab" data-toggle="tab">
+                    <i class="fas fa-home"></i> {{Général}}
+                </a>
+            </li>
+            <li role="presentation">
+                <a href="#tab_cmds" role="tab" data-toggle="tab">
+                    <i class="fas fa-list-alt"></i> {{Commandes}}
+                </a>
+            </li>
+        </ul>
 
-            <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation">
-                    <a href="#" id="bt_backToList">
-                        <i class="fas fa-arrow-left"></i> {{Retour}}
-                    </a>
-                </li>
-                <li role="presentation" class="active">
-                    <a href="#tab_general" role="tab" data-toggle="tab">
-                        <i class="fas fa-home"></i> {{Général}}
-                    </a>
-                </li>
-                <li role="presentation">
-                    <a href="#tab_cmds" role="tab" data-toggle="tab">
-                        <i class="fas fa-list-alt"></i> {{Commandes}}
-                    </a>
-                </li>
-            </ul>
+        <div class="tab-content" style="padding-top:15px;">
 
-            <div class="tab-content" style="padding-top:15px;">
-
-                <div role="tabpanel" class="tab-pane active" id="tab_general">
-                    <div class="form-horizontal">
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Nom}}</label>
-                            <div class="col-sm-5">
-                                <input type="text" id="in_eqLogicName" class="form-control"
-                                       placeholder="{{Nom de l'équipement}}" />
-                            </div>
+            <div role="tabpanel" class="tab-pane active" id="tab_general">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Nom}}</label>
+                        <div class="col-sm-5">
+                            <input type="text" id="in_eqLogicName" class="form-control"
+                                   placeholder="{{Nom de l'équipement}}" />
                         </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Objet parent}}</label>
-                            <div class="col-sm-4">
-                                <select id="sel_objectId" class="form-control">
-                                    <option value="">{{Aucun}}</option>
-                                    <?php foreach (jeeObject::all() as $object) { ?>
-                                    <option value="<?= $object->getId() ?>"><?= $object->getName() ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Objet parent}}</label>
+                        <div class="col-sm-4">
+                            <select id="sel_objectId" class="form-control">
+                                <option value="">{{Aucun}}</option>
+                                <?php foreach (jeeObject::buildTree(null, false) as $object): ?>
+                                <option value="<?= $object->getId() ?>">
+                                    <?= str_repeat('&nbsp;&nbsp;', $object->getConfiguration('parentNumber')) . htmlspecialchars($object->getName()) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Activer}}</label>
-                            <div class="col-sm-1">
-                                <input type="checkbox" id="cb_isEnable" />
-                            </div>
-                            <label class="col-sm-2 control-label">{{Visible}}</label>
-                            <div class="col-sm-1">
-                                <input type="checkbox" id="cb_isVisible" />
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Activer}}</label>
+                        <div class="col-sm-1">
+                            <input type="checkbox" id="cb_isEnable" />
                         </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Équipement source}}</label>
-                            <div class="col-sm-5">
-                                <input type="text" id="in_sourceEqLogicName" class="form-control" readonly />
-                            </div>
+                        <label class="col-sm-2 control-label">{{Visible}}</label>
+                        <div class="col-sm-1">
+                            <input type="checkbox" id="cb_isVisible" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Équipement source}}</label>
+                        <div class="col-sm-5">
+                            <input type="text" id="in_sourceEqLogicName" class="form-control" readonly />
                         </div>
                     </div>
                 </div>
-
-                <div role="tabpanel" class="tab-pane" id="tab_cmds">
-                    <a class="btn btn-default btn-sm" id="bt_addCmd">
-                        <i class="fas fa-plus-circle"></i> {{Ajouter une commande}}
-                    </a>
-                    <br><br>
-                    <div id="div_cmdList"></div>
-                </div>
-
             </div>
-        </div>
-    </div>
 
-</div>
+            <div role="tabpanel" class="tab-pane" id="tab_cmds">
+                <a class="btn btn-default btn-sm" id="bt_addCmd">
+                    <i class="fas fa-plus-circle"></i> {{Ajouter une commande}}
+                </a>
+                <br><br>
+                <div id="div_cmdList"></div>
+            </div>
+
+        </div><!-- /.tab-content -->
+    </div><!-- /.eqLogic -->
+
+</div><!-- /.row -->
 
 <!-- Template commande -->
 <div id="tmpl_cmd" style="display:none;">
