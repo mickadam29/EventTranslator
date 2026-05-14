@@ -3,6 +3,17 @@
 var ET = {
     currentEqLogicId: null,
     sourceEqLogicId: null,
+    _dirty: false,
+
+    _setDirty: function () { ET._dirty = true; },
+    _clearDirty: function () { ET._dirty = false; },
+
+    _confirmLeave: function (callback) {
+        if (!ET._dirty) { callback(); return; }
+        bootbox.confirm('{{Des modifications non sauvegardées seront perdues. Continuer ?}}', function (ok) {
+            if (ok) { ET._clearDirty(); callback(); }
+        });
+    },
 
     _learning: {
         interval:        null,
@@ -23,7 +34,8 @@ var ET = {
     /* ---------- Liste ---------- */
     _bindList: function () {
         $(document).on('click.ET', '#div_eqLogicList [data-eqLogic_id]', function () {
-            ET.loadEqLogic($(this).attr('data-eqLogic_id'));
+            var id = $(this).attr('data-eqLogic_id');
+            ET._confirmLeave(function () { ET.loadEqLogic(id); });
         });
 
         $(document).on('input.ET', '#in_searchEqlogic', function () {
@@ -37,10 +49,21 @@ var ET = {
             $('#in_searchEqlogic').val('').trigger('input');
         });
 
-        /* Appelé par plugin.template.js via data-action="returnToThumbnailDisplay" */
-        $(document).on('click.ET', '.eqLogicAction[data-action="returnToThumbnailDisplay"]', function () {
-            ET._stopLearning();
-            ET.currentEqLogicId = null;
+        /* Retour vers la liste — intercepte avant plugin.template.js */
+        $(document).on('click.ET', '.eqLogicAction[data-action="returnToThumbnailDisplay"]', function (e) {
+            if (ET._dirty) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                ET._confirmLeave(function () {
+                    ET._stopLearning();
+                    ET.currentEqLogicId = null;
+                    $('.eqLogic').hide();
+                    $('.eqLogicThumbnailDisplay').show();
+                });
+            } else {
+                ET._stopLearning();
+                ET.currentEqLogicId = null;
+            }
         });
 
         $(document).on('click.ET', '#bt_addEqLogic', function () {
@@ -71,6 +94,9 @@ var ET = {
 
     /* ---------- Panneau détail ---------- */
     _bindDetail: function () {
+        /* Marquer dirty sur toute modification dans la vue détail */
+        $(document).on('input.ET change.ET', '.eqLogic input, .eqLogic select, .eqLogic textarea', ET._setDirty);
+
         $(document).on('click.ET', '#bt_saveEqLogic', function () { ET.saveAll(); });
 
         $(document).on('click.ET', '#bt_removeEqLogic', function () {
@@ -103,12 +129,13 @@ var ET = {
         $(document).on('click.ET', '.bt_removeCmd', function () {
             var $panel = $(this).closest('.et_cmd');
             bootbox.confirm('{{Supprimer cette commande ?}}', function (ok) {
-                if (ok) { $panel.remove(); }
+                if (ok) { $panel.remove(); ET._setDirty(); }
             });
         });
 
         $(document).on('click.ET', '.bt_addMapping', function () {
             ET._addMappingRow($(this).closest('.panel-body').find('.et_mapping_body'), {});
+            ET._setDirty();
         });
 
         $(document).on('click.ET', '.bt_learnMapping', function () {
@@ -128,6 +155,7 @@ var ET = {
 
         $(document).on('click.ET', '.bt_removeMapping', function () {
             $(this).closest('.et_mapping_row').remove();
+            ET._setDirty();
         });
 
         $(document).on('change.ET', '.et_mapping_type', function () {
@@ -190,6 +218,7 @@ var ET = {
                     });
                 }
 
+                ET._clearDirty();
                 $('#div_eqLogicList [data-eqLogic_id]').removeClass('active');
                 $('#div_eqLogicList [data-eqLogic_id="' + id + '"]').addClass('active');
 
@@ -479,6 +508,7 @@ var ET = {
                     $.fn.showAlert({ message: data.result, level: 'danger' });
                     return;
                 }
+                ET._clearDirty();
                 $.fn.showAlert({ message: '{{Sauvegardé avec succès.}}', level: 'success' });
                 var name = collected.eqLogicData.name;
                 if (name) {
