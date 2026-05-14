@@ -170,6 +170,7 @@ class EventTranslator extends eqLogic {
             if (!is_object($cmd)) {
                 $cmd = new EventTranslatorCmd();
                 $cmd->setEqLogic_id($this->getId());
+                $cmd->setLogicalId('ET_src_' . $sourceCmdId);
                 $cmd->setType('info');
                 $cmd->setConfiguration('source_cmd_id', (string)$sourceCmdId);
             }
