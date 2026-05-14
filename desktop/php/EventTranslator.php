@@ -248,11 +248,13 @@ $eqLogics = eqLogic::byType('EventTranslator');
                     <input type="text" class="form-control et_mapping_cmd_human" readonly
                            placeholder="{{Objet > Équipement > Commande}}" />
                     <input type="hidden" class="et_mapping_cmd_id" value="" />
-                    <input type="hidden" class="et_mapping_cmd_options" value="" />
                     <span class="input-group-btn">
                         <a class="btn btn-default bt_selectActionCmd"><i class="fas fa-search"></i></a>
                     </span>
                 </div>
+                <input type="text" class="form-control input-sm et_mapping_cmd_options"
+                       placeholder="{{Valeur (ex: 100 pour un slider, vide pour toggle)}}"
+                       style="margin-top:3px;" />
             </div>
             <div class="et_target_scenario" style="display:none;">
                 <div class="input-group input-group-sm">

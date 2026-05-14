@@ -318,7 +318,7 @@ var ET = {
                 L.cmdId           = cmdId;
                 L.lastValue       = data.result.value;
                 L.lastCollectDate = data.result.collectDate;
-                L.countdown       = 30;
+                L.countdown       = 300;
                 $btn.removeClass('btn-success').addClass('btn-danger')
                     .html('<i class="fas fa-stop"></i> {{Terminer}} (' + L.countdown + 's)');
                 L.interval = setInterval(function () { ET._pollLearning(); }, 1000);
@@ -351,7 +351,7 @@ var ET = {
                 if (changed) {
                     L.lastValue       = newVal;
                     L.lastCollectDate = newCollectDate;
-                    L.countdown       = 30;
+                    L.countdown       = 300;
                     var alreadyKnown = false;
                     L.$body.find('.et_mapping_source').each(function () {
                         if ($(this).val() === newVal) { alreadyKnown = true; return false; }
