@@ -159,10 +159,14 @@ $eqLogics = eqLogic::byType('EventTranslator');
             </div>
 
             <div role="tabpanel" class="tab-pane" id="tab_cmds">
-                <a class="btn btn-default btn-sm" id="bt_addCmd">
-                    <i class="fas fa-plus-circle"></i> {{Ajouter une commande}}
-                </a>
-                <br><br>
+                <div style="display:inline-flex; gap:6px; margin-bottom:10px;">
+                    <a class="btn btn-default btn-sm" id="bt_addCmd">
+                        <i class="fas fa-plus-circle"></i> {{Ajouter une commande}}
+                    </a>
+                    <a class="btn btn-success btn-sm" id="bt_saveEqLogic2">
+                        <i class="fas fa-check-circle"></i> {{Sauvegarder}}
+                    </a>
+                </div>
                 <div id="div_cmdList"></div>
             </div>
 

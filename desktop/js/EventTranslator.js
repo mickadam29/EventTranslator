@@ -97,7 +97,7 @@ var ET = {
         /* Marquer dirty sur toute modification dans la vue détail */
         $(document).on('input.ET change.ET', '.eqLogic input, .eqLogic select, .eqLogic textarea', ET._setDirty);
 
-        $(document).on('click.ET', '#bt_saveEqLogic', function () { ET.saveAll(); });
+        $(document).on('click.ET', '#bt_saveEqLogic, #bt_saveEqLogic2', function () { ET.saveAll(); });
 
         $(document).on('click.ET', '#bt_removeEqLogic', function () {
             bootbox.confirm('{{Êtes-vous sûr de vouloir supprimer cet équipement ?}}', function (ok) {
@@ -266,66 +266,70 @@ var ET = {
         $('#div_cmdList').append($tmpl);
     },
 
-    /* ---------- Sélecteur de commande source ---------- */
+    /* ---------- Sélecteur de commande source (multi-source) ---------- */
     _openCmdSelector: function () {
-        if (!ET.sourceEqLogicId) {
-            $.fn.showAlert({ message: '{{Aucun équipement source défini.}}', level: 'warning' });
-            return;
-        }
-        $.ajax({
-            type: 'POST',
-            url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
-            data: { action: 'sourceCmds', eqLogic_id: ET.sourceEqLogicId },
-            dataType: 'json',
-            success: function (data) {
-                if (data.state !== 'ok') { return; }
-                var cmds = data.result || [];
-                if (cmds.length === 0) {
-                    $.fn.showAlert({ message: '{{Aucune commande info sur l\'équipement source.}}', level: 'warning' });
-                    return;
-                }
-                var options = cmds.map(function (c) {
-                    return '<option value="' + c.id + '">' + $('<div>').text(c.name).html() + '</option>';
-                }).join('');
-                bootbox.dialog({
-                    title: '{{Sélectionner une commande source}}',
-                    message: '<select class="form-control" id="sel_srcCmd">' + options + '</select>',
-                    buttons: {
-                        cancel: { label: '{{Annuler}}', className: 'btn-default' },
-                        ok: {
-                            label: '{{Valider}}',
-                            className: 'btn-success',
-                            callback: function () {
-                                var cmdId = $('#sel_srcCmd').val();
-                                var cmd = cmds.find(function (c) { return String(c.id) === String(cmdId); });
-                                if (!cmd) { return; }
-                                var already = false;
-                                $('#div_cmdList .et_cmd').each(function () {
-                                    if ($(this).attr('data-source_cmd_id') == cmdId) { already = true; return false; }
-                                });
-                                if (already) {
-                                    $.fn.showAlert({ message: '{{Cette commande est déjà ajoutée.}}', level: 'warning' });
-                                    return;
-                                }
-                                var sourceName = $('#in_sourceEqLogicName').val();
-                                ET._renderCmd({
-                                    id: '',
-                                    name: cmd.name,
-                                    subType: 'string',
-                                    configuration: {
-                                        source_cmd_id: cmdId,
-                                        source_cmd_human: '[' + sourceName + '][' + cmd.name + ']',
-                                        mappings: []
+        /* Étape 1 : choisir n'importe quel équipement (sauf ET) */
+        jeedom.eqLogic.getSelectModal({}, function (resultEq) {
+            if (!resultEq || !resultEq.id) { return; }
+            /* Étape 2 : charger les commandes info de cet équipement */
+            $.ajax({
+                type: 'POST',
+                url: 'plugins/EventTranslator/core/ajax/EventTranslator.ajax.php',
+                data: { action: 'sourceCmds', eqLogic_id: resultEq.id },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.state !== 'ok') {
+                        $.fn.showAlert({ message: data.result, level: 'danger' });
+                        return;
+                    }
+                    var cmds       = data.result.cmds || [];
+                    var eqName     = data.result.eqLogic ? data.result.eqLogic.name : '';
+                    if (cmds.length === 0) {
+                        $.fn.showAlert({ message: '{{Aucune commande info sur cet équipement.}}', level: 'warning' });
+                        return;
+                    }
+                    var options = cmds.map(function (c) {
+                        return '<option value="' + c.id + '">' + $('<div>').text(c.name).html() + '</option>';
+                    }).join('');
+                    bootbox.dialog({
+                        title: '{{Sélectionner une commande source}}',
+                        message: '<select class="form-control" id="sel_srcCmd">' + options + '</select>',
+                        buttons: {
+                            cancel: { label: '{{Annuler}}', className: 'btn-default' },
+                            ok: {
+                                label: '{{Valider}}',
+                                className: 'btn-success',
+                                callback: function () {
+                                    var cmdId = $('#sel_srcCmd').val();
+                                    var cmd = cmds.find(function (c) { return String(c.id) === String(cmdId); });
+                                    if (!cmd) { return; }
+                                    var already = false;
+                                    $('#div_cmdList .et_cmd').each(function () {
+                                        if ($(this).attr('data-source_cmd_id') == cmdId) { already = true; return false; }
+                                    });
+                                    if (already) {
+                                        $.fn.showAlert({ message: '{{Cette commande est déjà ajoutée.}}', level: 'warning' });
+                                        return;
                                     }
-                                });
+                                    ET._renderCmd({
+                                        id: '',
+                                        name: cmd.name,
+                                        subType: 'string',
+                                        configuration: {
+                                            source_cmd_id: cmdId,
+                                            source_cmd_human: eqName + ' / ' + cmd.name,
+                                            mappings: []
+                                        }
+                                    });
+                                }
                             }
                         }
-                    }
-                });
-            },
-            error: function () {
-                $.fn.showAlert({ message: '{{Erreur lors du chargement des commandes.}}', level: 'danger' });
-            }
+                    });
+                },
+                error: function () {
+                    $.fn.showAlert({ message: '{{Erreur lors du chargement des commandes.}}', level: 'danger' });
+                }
+            });
         });
     },
 

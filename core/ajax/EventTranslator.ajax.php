@@ -25,11 +25,17 @@ try {
             if (!is_object($source)) {
                 throw new Exception(__('Équipement source introuvable.', __FILE__));
             }
-            $result = [];
-            foreach ($source->getCmd('info') as $cmd) {
-                $result[] = ['id' => $cmd->getId(), 'name' => $cmd->getName()];
+            if ($source->getEqType_name() === 'EventTranslator') {
+                throw new Exception(__('Un équipement EventTranslator ne peut pas être utilisé comme source.', __FILE__));
             }
-            ajax::success($result);
+            $cmds = [];
+            foreach ($source->getCmd('info') as $cmd) {
+                $cmds[] = ['id' => $cmd->getId(), 'name' => $cmd->getName()];
+            }
+            ajax::success([
+                'eqLogic' => ['id' => $source->getId(), 'name' => $source->getHumanName()],
+                'cmds'    => $cmds,
+            ]);
             break;
 
         case 'remove':
