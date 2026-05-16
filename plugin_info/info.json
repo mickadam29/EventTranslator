@@ -5,8 +5,13 @@
     "licence": "proprietary",
     "author": "mickadam29",
     "require": "4.2",
-    "category": "programming",
     "version": "1.0.0",
-    "changelog": "docs/fr_FR/changelog.md",
-    "documentation": "docs/fr_FR/index.md"
+    "category": "programming",
+    "changelog": "https://mickadam29.github.io/EventTranslator/#language#/changelog",
+    "documentation": "https://mickadam29.github.io/EventTranslator/#language#/",
+    "changelog_beta": "https://mickadam29.github.io/EventTranslator/#language#/changelog",
+    "documentation_beta": "https://mickadam29.github.io/EventTranslator/#language#/",
+    "hasDependency": false,
+    "hasOwnDeamon": false,
+    "maxDependancyInstallTime": 0
 }
