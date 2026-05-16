@@ -68,7 +68,7 @@ Cliquer sur **Sauvegarder**. Les listeners Jeedom sont reconstruits automatiquem
 Pour découvrir les valeurs possibles d'une commande source sans les connaître à l'avance :
 
 1. Cliquer sur **Apprendre** (bouton vert) dans le panneau de la commande
-2. Le bouton passe en rouge **Terminer (30s)**
+2. Le bouton passe en rouge **Terminer (5min)**
 3. Appuyer sur le bouton physique ou déclencher l'action sur l'équipement source
 4. La valeur détectée apparaît automatiquement comme règle pré-remplie
 5. Répéter pour toutes les valeurs souhaitées
