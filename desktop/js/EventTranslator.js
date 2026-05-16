@@ -546,3 +546,8 @@ var ET = {
 };
 
 $(function () { ET.init(); });
+
+/* Hook plugin.template.js — appelé quand le plugin est ouvert depuis le dashboard */
+function printEqLogic(data) {
+    ET.loadEqLogic(data.id);
+}
